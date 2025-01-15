@@ -1,56 +1,79 @@
-import random
+import spacy 
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import string
 import nltk
-import spacy
-from nltk.corpus import wordnet
 
 # Download NLTK resources
-nltk.download('punkt')
-nltk.download('wordnet')
+nltk.download('punkt_tab')
 
-# Load SpaCy model
+
+# Load SpaCy English model
 nlp = spacy.load("en_core_web_sm")
 
-# Predefined responses for common intents
+# Predefined responses (rule-based)
 responses = {
-    "greeting": ["Hello! How can I assist you today?", "Hi there! What can I do for you?"],
-    "goodbye": ["Goodbye! Have a great day!", "See you later! Take care!"],
-    "thanks": ["You're welcome!", "No problem! Happy to help!"],
-    "unknown": ["I'm sorry, I didn't understand that. Can you please rephrase?"]
+    "greet": ["Hello! How can I assist you today?", "Hi there! What can I do for you?"],
+    "bye": ["Goodbye! Have a great day!", "See you later! Take care!"],
+    "name": [" I am an AI chatbot created to assist you with your queries."],
+    "age": ["I'm timeless, as I'm just a piece of code!"],
+    "joke": ["Why do programmers prefer dark mode? Because light attracts bugs!"],
+    "Thanks": ["You're welcome!", "No problem! Happy to help!"],
+    "default": ["I'm sorry, I didn't understand that. Can you please rephrase?"]
 }
+# Function to preprocess user input
+def preprocess_input(user_input):
+    # Tokenization and lowercasing
+    tokens = word_tokenize(user_input.lower())
+    # Removing punctuation and stopwords
+    Stop_words = set(stopwords.words("english"))
+    tokens = [word for word in tokens if word not in Stop_words and word not in string.punctuation]
+    return tokens
 
-# Function to detect intent
-def get_intent(user_input):
-    # Tokenize and normalize input
-    doc = nlp(user_input.lower())
-
-    # Basic keyword-based intent detection
-    if any(token.lemma_ in ["hello", "hi","hii","hey"] for token in doc):
-        return "greeting"
-    elif any(token.lemma_ in ["bye", "goodbye", "see you"] for token in doc):
-        return "goodbye"
-    elif any(token.lemma_ in ["thank", "thanks","thank you"] for token in doc):
-        return "thanks"
+ # Function to determine intent based on keywords
+def get_intent(preprocessed_tokens):
+    if any(word in preprocessed_tokens for word in ["hello","hi","hey"]):
+        return "greet"
+    elif any(word in preprocessed_tokens for word in ["bye","goodbye","see you"]):
+        return "bye"
+    elif any(word in preprocessed_tokens for word in ["name","who are you"]):
+        return "name"
+    elif any(word in preprocessed_tokens for word in ["age","old"]):
+        return "age"
+    elif any(word in preprocessed_tokens for word in ["thanks","thank you"]):
+        return "Thanks"
+    elif any(word in preprocessed_tokens for word in ["joke","funny"]):
+        return "joke"
     else:
-        return "unknown"
+        return "default"
 
-# Function to generate a response
-def generate_response(intent):
-    return random.choice(responses.get(intent, responses["unknown"]))
 
-# Main chatbot loop
+# Main chatbot function
 def chatbot():
     print("Chatbot: Hello! I am your AI assistant. Type 'exit' to end the chat.")
     while True:
+        # Get user input
         user_input = input("You: ")
         if user_input.lower() == "exit":
             print("Chatbot: Goodbye! Have a great day!")
             break
 
-        # Get intent and generate response
-        intent = get_intent(user_input)
-        response = generate_response(intent)
+        # Preprocess user input
+        preprocessed_tokens = preprocess_input(user_input)
+        
+        # Determine user input
+        intent = get_intent(preprocessed_tokens)
+
+        # Fetch response based on intent
+        response = responses.get(intent,responses["default"])
         print(f"Chatbot: {response}")
 
 # Run the chatbot
 if __name__ == "__main__":
+    import nltk
+    nltk.download("punkt")
+    nltk.download("stopwords")
     chatbot()
+
+    
+ 
